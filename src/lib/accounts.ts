@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, notInArray, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { Octokit } from "octokit";
+import { Octokit, RequestError } from "octokit";
 import { db } from "@/db";
 import { account, accountMembers, githubAccounts } from "@/db/schema";
 import { requireSession } from "./session";
@@ -14,7 +14,14 @@ export async function syncUserInstallations(userId: string) {
     .where(and(eq(account.userId, userId), eq(account.providerId, "github")));
   if (!gh?.accessToken) throw new Error("No GitHub access token for user");
   const octokit = new Octokit({ auth: gh.accessToken });
-  const installations = await octokit.paginate("GET /user/installations", { per_page: 100 });
+  let installations: Awaited<ReturnType<typeof listInstallations>>;
+  try {
+    installations = await listInstallations(octokit);
+  } catch (e) {
+    // User-to-server tokens can expire; a fresh sign-in replaces the stored token.
+    if (e instanceof RequestError && e.status === 401) return "reauth" as const;
+    throw e;
+  }
 
   const ids: number[] = [];
   for (const inst of installations) {
@@ -47,6 +54,11 @@ export async function syncUserInstallations(userId: string) {
   } else {
     await db.delete(accountMembers).where(eq(accountMembers.userId, userId));
   }
+  return "ok" as const;
+}
+
+function listInstallations(octokit: Octokit) {
+  return octokit.paginate("GET /user/installations", { per_page: 100 });
 }
 
 export async function getUserAccounts(userId: string) {

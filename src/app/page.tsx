@@ -7,7 +7,8 @@ import { getSession } from "@/lib/session";
 export default async function Home() {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  await syncUserInstallations(session.user.id);
+  const synced = await syncUserInstallations(session.user.id);
+  if (synced === "reauth") redirect("/sign-in?reauth=1");
   const accounts = await getUserAccounts(session.user.id);
   if (accounts.length) redirect(`/${accounts[0].login}`);
   return (
