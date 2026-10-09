@@ -1,0 +1,26 @@
+name: Scan models
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm scan
+        env:
+          # tsx loads .ts as CommonJS here (no "type": "module"); octokit's deps only export an "import" entry.
+          NODE_OPTIONS: --conditions=import
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # GitHub refuses secret names starting with GITHUB_, so these two are stored as APP_*.
+          GITHUB_APP_ID: ${{ secrets.APP_ID }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
