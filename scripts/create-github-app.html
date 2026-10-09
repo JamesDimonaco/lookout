@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Create the lookout GitHub App</title>
+<style>body{font:16px/1.5 system-ui;max-width:40rem;margin:4rem auto;padding:0 1rem}button{font:inherit;padding:.6rem 1rem}</style>
+<h1>Create the lookout GitHub App</h1>
+<p>This posts a pre-filled manifest to GitHub (permissions, callback URL, no webhook). Click, check the name, press <b>Create GitHub App</b>. GitHub then sends you to the lookout repo page with <code>?code=…</code> in the URL. Copy that code.</p>
+<form method="post" action="https://github.com/settings/apps/new?state=lookout">
+  <input type="hidden" name="manifest" id="manifest">
+  <button type="submit">Create the GitHub App</button>
+</form>
+<script>
+  const base = "https://lookout-pied.vercel.app";
+  document.getElementById("manifest").value = JSON.stringify({
+    name: "lookout",
+    url: base,
+    description: "Every repo, every open PR, every AI model in use.",
+    redirect_url: "https://github.com/JamesDimonaco/lookout",
+    callback_urls: [base + "/api/auth/callback/github"],
+    setup_url: base + "/",
+    public: true,
+    request_oauth_on_install: true,
+    hook_attributes: { active: false },
+    default_events: [],
+    default_permissions: {
+      contents: "read",
+      metadata: "read",
+      pull_requests: "read",
+      checks: "read",
+      statuses: "read",
+      emails: "read",
+    },
+  });
+</script>
