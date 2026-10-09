@@ -2,11 +2,10 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { publicEnv } from "@/env";
 import { getUserAccounts, syncUserInstallations } from "@/lib/accounts";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export default async function Home() {
-  const session = await getSession();
-  if (!session) redirect("/sign-in");
+  const session = await requireSession();
   const synced = await syncUserInstallations(session.user.id);
   if (synced === "reauth") redirect("/sign-in?reauth=1");
   const accounts = await getUserAccounts(session.user.id);

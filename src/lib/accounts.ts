@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, notInArray, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Octokit, RequestError } from "octokit";
+import { cache } from "react";
 import { db } from "@/db";
 import { account, accountMembers, githubAccounts } from "@/db/schema";
 import { requireSession } from "./session";
@@ -27,20 +28,14 @@ export async function syncUserInstallations(userId: string) {
   for (const inst of installations) {
     const acct = inst.account;
     if (!acct || !("login" in acct)) continue;
-    const [row] = await db
-      .insert(githubAccounts)
-      .values({
+    ids.push(
+      await upsertAccount({
         login: acct.login,
         type: acct.type === "Organization" ? "Organization" : "User",
         installationId: inst.id,
         avatarUrl: acct.avatar_url,
-      })
-      .onConflictDoUpdate({
-        target: githubAccounts.login,
-        set: { installationId: inst.id, avatarUrl: acct.avatar_url },
-      })
-      .returning({ id: githubAccounts.id });
-    ids.push(row.id);
+      }),
+    );
   }
 
   if (ids.length) {
@@ -54,11 +49,45 @@ export async function syncUserInstallations(userId: string) {
   } else {
     await db.delete(accountMembers).where(eq(accountMembers.userId, userId));
   }
+
+  // An account nobody can see is an uninstalled one; drop it so cron and the scan stop hitting it.
+  await db
+    .delete(githubAccounts)
+    .where(notInArray(githubAccounts.id, db.select({ id: accountMembers.accountId }).from(accountMembers)));
+
   return "ok" as const;
 }
 
 function listInstallations(octokit: Octokit) {
   return octokit.paginate("GET /user/installations", { per_page: 100 });
+}
+
+// login changes on a rename and installationId changes on a reinstall, so match on either.
+async function upsertAccount(values: typeof githubAccounts.$inferInsert) {
+  const [byInstallation] = await db
+    .select({ id: githubAccounts.id })
+    .from(githubAccounts)
+    .where(eq(githubAccounts.installationId, values.installationId));
+  if (byInstallation) {
+    await db
+      .update(githubAccounts)
+      .set({ login: values.login, avatarUrl: values.avatarUrl })
+      .where(eq(githubAccounts.id, byInstallation.id));
+    return byInstallation.id;
+  }
+  const [byLogin] = await db
+    .select({ id: githubAccounts.id })
+    .from(githubAccounts)
+    .where(eq(githubAccounts.login, values.login));
+  if (byLogin) {
+    await db
+      .update(githubAccounts)
+      .set({ installationId: values.installationId, avatarUrl: values.avatarUrl })
+      .where(eq(githubAccounts.id, byLogin.id));
+    return byLogin.id;
+  }
+  const [created] = await db.insert(githubAccounts).values(values).returning({ id: githubAccounts.id });
+  return created.id;
 }
 
 export async function getUserAccounts(userId: string) {
@@ -75,7 +104,7 @@ export async function getUserAccounts(userId: string) {
     .orderBy(githubAccounts.login);
 }
 
-export async function requireAccount(login: string) {
+export const requireAccount = cache(async (login: string) => {
   const session = await requireSession();
   const [row] = await db
     .select({ account: githubAccounts })
@@ -89,4 +118,4 @@ export async function requireAccount(login: string) {
     );
   if (!row) notFound();
   return { account: row.account, session };
-}
+});

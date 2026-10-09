@@ -18,7 +18,20 @@ type PrNode = {
   };
 };
 
-type PrQueryResponse = Record<string, { pullRequests: { nodes: PrNode[] } } | null>;
+type PrConnection = { nodes: PrNode[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } };
+type PrQueryResponse = Record<string, { pullRequests: PrConnection } | null>;
+type PrPageResponse = { repository: { pullRequests: PrConnection } | null };
+
+// octokit's GraphqlResponseError carries the resolved aliases alongside the errors.
+function isPartialGraphqlError(e: unknown): e is { data: PrQueryResponse; errors: { message: string }[] } {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    (e as { name?: string }).name === "GraphqlResponseError" &&
+    "data" in e &&
+    "errors" in e
+  );
+}
 
 type PrInsert = typeof pullRequests.$inferInsert;
 
@@ -43,6 +56,14 @@ const PR_FRAGMENT = `fragment PR on PullRequest {
 }`;
 
 const BATCH_SIZE = 20;
+const PR_PAGE_QUERY = `${PR_FRAGMENT}
+query ($owner: String!, $name: String!, $after: String!) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(states: OPEN, first: 50, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}) {
+      nodes { ...PR } pageInfo { hasNextPage endCursor }
+    }
+  }
+}`;
 
 function toRow(repoId: number, pr: PrNode): PrInsert {
   const login = pr.author?.login ?? "ghost";
@@ -119,24 +140,51 @@ export const githubSource: Source = {
     );
 
     let prCount = 0;
+    let failedRepos = 0;
     for (let i = 0; i < active.length; i += BATCH_SIZE) {
       const batch = active.slice(i, i + BATCH_SIZE);
       const fields = batch
         .map(
           (r, j) =>
-            `r${j}: repository(owner: ${JSON.stringify(r.owner)}, name: ${JSON.stringify(r.name)}) { pullRequests(states: OPEN, first: 50, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { ...PR } } }`,
+            `r${j}: repository(owner: ${JSON.stringify(r.owner)}, name: ${JSON.stringify(r.name)}) { pullRequests(states: OPEN, first: 50, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { ...PR } pageInfo { hasNextPage endCursor } } }`,
         )
         .join("\n");
-      const data = await octokit.graphql<PrQueryResponse>(`${PR_FRAGMENT}\nquery { ${fields} }`);
+      let data: PrQueryResponse;
+      try {
+        data = await octokit.graphql<PrQueryResponse>(`${PR_FRAGMENT}\nquery { ${fields} }`);
+      } catch (e) {
+        if (!isPartialGraphqlError(e) || !e.data) throw e;
+        console.error(`graphql errors: ${e.errors.map((x) => x.message).join("; ")}`);
+        data = e.data;
+      }
 
       for (const [j, repo] of batch.entries()) {
-        const nodes = data[`r${j}`]?.pullRequests.nodes ?? [];
+        const connection = data[`r${j}`]?.pullRequests;
+        if (!connection) {
+          failedRepos++;
+          continue;
+        }
+        const nodes = [...connection.nodes];
+        let page = connection.pageInfo;
+        while (page.hasNextPage && page.endCursor) {
+          const more = await octokit.graphql<PrPageResponse>(PR_PAGE_QUERY, {
+            owner: repo.owner,
+            name: repo.name,
+            after: page.endCursor,
+          });
+          const next = more.repository?.pullRequests;
+          if (!next) break;
+          nodes.push(...next.nodes);
+          page = next.pageInfo;
+        }
         await db.delete(pullRequests).where(eq(pullRequests.repoId, repo.id));
         if (nodes.length) await db.insert(pullRequests).values(nodes.map((pr) => toRow(repo.id, pr)));
         prCount += nodes.length;
       }
     }
 
-    return { summary: `${ghRepos.length} repos, ${prCount} open PRs` };
+    return {
+      summary: `${ghRepos.length} repos, ${prCount} open PRs${failedRepos ? `, ${failedRepos} repos failed` : ""}`,
+    };
   },
 };

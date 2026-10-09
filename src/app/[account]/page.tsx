@@ -26,7 +26,9 @@ export default async function OverviewPage({ params }: { params: Promise<{ accou
       .select({ n: count() })
       .from(pullRequests)
       .innerJoin(repos, eq(pullRequests.repoId, repos.id))
-      .where(and(eq(repos.accountId, account.id), eq(pullRequests.ciState, "failure"))),
+      .where(
+        and(eq(repos.accountId, account.id), eq(pullRequests.isBot, false), eq(pullRequests.ciState, "failure")),
+      ),
     db
       .select()
       .from(syncRuns)

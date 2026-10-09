@@ -9,7 +9,7 @@ const ANTHROPIC_PREFIX = String.raw`(?:(?:us|eu|apac)\.)?(?:anthropic[./])?`;
 const LITERAL = new RegExp(
   [
     String.raw`${ANTHROPIC_PREFIX}claude-(?:\d|opus|sonnet|haiku|fable|mythos)[a-z0-9.-]*?(?:-v\d+:\d+|\[1m\]|@\d+)?${END}`,
-    String.raw`(?:openai/)?(?:gpt-\d[a-z0-9.-]*|o[134](?:-(?:mini|pro|preview))?(?:-\d{4}-\d{2}-\d{2})?|chatgpt-[a-z0-9.-]+|text-embedding-[a-z0-9-]+)${END}`,
+    String.raw`(?:openai/)?(?:gpt-\d[a-z0-9.-]*|o[134]-(?:mini|pro|preview)(?:-\d{4}-\d{2}-\d{2})?|o[134]-\d{4}-\d{2}-\d{2}|(?<=["'\x60])o[134](?=["'\x60])|chatgpt-[a-z0-9.-]+|text-embedding-[a-z0-9-]+)${END}`,
     String.raw`(?:google/|models/)?gemini-\d[a-z0-9.-]*${END}`,
     String.raw`llama-?\d[a-z0-9.-]*${END}`,
     String.raw`(?:mistral|mixtral|codestral)-[a-z0-9.-]+${END}`,

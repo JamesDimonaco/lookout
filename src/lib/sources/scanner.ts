@@ -1,3 +1,5 @@
+import { Readable } from "node:stream";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { modelRefs, repos } from "@/db/schema";
@@ -34,9 +36,13 @@ export const scannerSource: Source = {
           continue;
         }
 
-        const { data } = await octokit.request("GET /repos/{owner}/{repo}/tarball/{ref}", { ...target, ref: head.sha });
-        if (!(data instanceof ArrayBuffer)) throw new Error("tarball response was not binary");
-        const refs = await scanTarball(Buffer.from(data));
+        const { data: body } = await octokit.request("GET /repos/{owner}/{repo}/tarball/{ref}", {
+          ...target,
+          ref: head.sha,
+          request: { parseSuccessResponseBody: false },
+        });
+        if (!(body instanceof ReadableStream)) throw new Error("tarball response was not a stream");
+        const refs = await scanTarball(Readable.fromWeb(body as WebReadableStream<Uint8Array>));
 
         await db.delete(modelRefs).where(eq(modelRefs.repoId, repo.id));
         for (let i = 0; i < refs.length; i += INSERT_CHUNK) {
@@ -57,6 +63,7 @@ export const scannerSource: Source = {
       }
     }
 
+    if (failed > 0 && scanned + skipped === 0) throw new Error(`all ${failed} repos failed to scan`);
     return { summary: `${scanned} scanned, ${skipped} unchanged, ${failed} failed, ${total} refs` };
   },
 };

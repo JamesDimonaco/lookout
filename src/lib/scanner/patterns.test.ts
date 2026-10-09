@@ -75,3 +75,14 @@ describe("findModelRefs", () => {
     ]);
   });
 });
+
+describe("o-series models need a suffix or quotes", () => {
+  it("ignores bare identifiers", () => {
+    expect(findModelRefs("const o1 = items[0]; const o3 = foo(o1); for (const o4 of list) {}")).toEqual([]);
+  });
+  it("matches quoted and suffixed forms", () => {
+    expect(findModelRefs('model: "o3"').map((r) => r.modelId)).toEqual(["o3"]);
+    expect(findModelRefs("use o3-mini-2025-01-31 here").map((r) => r.modelId)).toEqual(["o3-mini"]);
+    expect(findModelRefs("use o4-mini here").map((r) => r.modelId)).toEqual(["o4-mini"]);
+  });
+});
