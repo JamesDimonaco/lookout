@@ -14,3 +14,5 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     </main>
   );
 }
+
+export const instant = false;

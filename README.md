@@ -36,7 +36,7 @@ Stack: Next.js 16, TypeScript, Tailwind 4, shadcn, Drizzle on Neon Postgres, Bet
    | `ALLOWED_GITHUB_LOGINS` | comma-separated logins allowed to sign in |
    | `NEXT_PUBLIC_GITHUB_APP_SLUG` | `slug` from step 2 |
 
-   And as repository secrets for the scan workflow: `DATABASE_URL`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`.
+   And as repository secrets for the scan workflow: `DATABASE_URL`, `APP_ID`, `APP_PRIVATE_KEY` (GitHub rejects secret names starting with `GITHUB_`).
 4. **Install.** Visit `https://github.com/apps/<slug>/installations/new`, install on your user account (and any org later). Sign in at the live URL, open Settings, press Sync now. Run the scan from Actions → scan → Run workflow, or wait for 04:00 UTC.
 
 Deploys run `drizzle-kit migrate` before `next build`, so the schema is applied on every deploy.

@@ -18,8 +18,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm scan
         env:
-          # tsx loads .ts as CommonJS here (no "type": "module"); octokit's deps only export an "import" entry.
-          NODE_OPTIONS: --conditions=import
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           # GitHub refuses secret names starting with GITHUB_, so these two are stored as APP_*.
           GITHUB_APP_ID: ${{ secrets.APP_ID }}

@@ -15,7 +15,7 @@
     url: base,
     description: "Every repo, every open PR, every AI model in use.",
     redirect_url: "https://github.com/JamesDimonaco/lookout",
-    callback_urls: [base + "/api/auth/callback/github"],
+    callback_urls: [base + "/api/auth/callback/github", "http://localhost:3000/api/auth/callback/github"],
     setup_url: base + "/",
     public: true,
     request_oauth_on_install: true,

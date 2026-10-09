@@ -1,4 +1,4 @@
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, eq, notInArray, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { pullRequests, repos } from "@/db/schema";
 import { installationOctokit } from "@/lib/github/app";
@@ -105,6 +105,16 @@ export const githubSource: Source = {
           repos.githubId,
           ghRepos.map((r) => r.id),
         ),
+      ),
+    );
+
+    await db.delete(pullRequests).where(
+      inArray(
+        pullRequests.repoId,
+        db
+          .select({ id: repos.id })
+          .from(repos)
+          .where(and(eq(repos.accountId, account.id), eq(repos.isArchived, true))),
       ),
     );
 

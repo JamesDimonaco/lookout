@@ -28,3 +28,5 @@ export default async function AccountLayout({
     </div>
   );
 }
+
+export const instant = false;
