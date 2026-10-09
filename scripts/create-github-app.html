@@ -19,7 +19,7 @@
     setup_url: base + "/",
     public: true,
     request_oauth_on_install: true,
-    hook_attributes: { active: false },
+    hook_attributes: { url: base + "/api/github/webhook", active: false },
     default_events: [],
     default_permissions: {
       contents: "read",
