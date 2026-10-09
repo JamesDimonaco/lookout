@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, notInArray, sql } from "drizzle-orm";
+import { and, eq, lt, notInArray, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Octokit, RequestError } from "octokit";
 import { cache } from "react";
@@ -51,9 +51,15 @@ export async function syncUserInstallations(userId: string) {
   }
 
   // An account nobody can see is an uninstalled one; drop it so cron and the scan stop hitting it.
+  // The age guard covers another user's concurrent first sign-in (no transactions on neon-http).
   await db
     .delete(githubAccounts)
-    .where(notInArray(githubAccounts.id, db.select({ id: accountMembers.accountId }).from(accountMembers)));
+    .where(
+      and(
+        notInArray(githubAccounts.id, db.select({ id: accountMembers.accountId }).from(accountMembers)),
+        lt(githubAccounts.createdAt, sql`now() - interval '10 minutes'`),
+      ),
+    );
 
   return "ok" as const;
 }

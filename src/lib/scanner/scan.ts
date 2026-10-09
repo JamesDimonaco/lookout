@@ -59,7 +59,11 @@ export async function scanTarball(tgz: Buffer | NodeJS.ReadableStream): Promise<
     gunzip.on("data", (chunk: Buffer) => parser.write(chunk));
     gunzip.on("end", () => parser.end());
     if (Buffer.isBuffer(tgz)) gunzip.end(tgz);
-    else tgz.pipe(gunzip);
+    else {
+      // pipe() does not forward source errors; a dropped download would otherwise hang forever.
+      tgz.on("error", reject);
+      tgz.pipe(gunzip);
+    }
   });
 
   return refs;

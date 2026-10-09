@@ -177,9 +177,11 @@ export const githubSource: Source = {
           nodes.push(...next.nodes);
           page = next.pageInfo;
         }
+        // A PR updated mid-pagination can appear on two pages.
+        const unique = [...new Map(nodes.map((pr) => [pr.number, pr])).values()];
         await db.delete(pullRequests).where(eq(pullRequests.repoId, repo.id));
-        if (nodes.length) await db.insert(pullRequests).values(nodes.map((pr) => toRow(repo.id, pr)));
-        prCount += nodes.length;
+        if (unique.length) await db.insert(pullRequests).values(unique.map((pr) => toRow(repo.id, pr)));
+        prCount += unique.length;
       }
     }
 
