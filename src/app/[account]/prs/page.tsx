@@ -143,3 +143,5 @@ export default async function PrsPage({
     </div>
   );
 }
+
+export const instant = false;

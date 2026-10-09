@@ -167,3 +167,5 @@ function ModelCard({ group, login }: { group: Group; login: string }) {
     </Card>
   );
 }
+
+export const instant = false;

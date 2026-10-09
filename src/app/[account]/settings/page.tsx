@@ -80,3 +80,5 @@ export default async function SettingsPage({ params }: { params: Promise<{ accou
     </div>
   );
 }
+
+export const instant = false;

@@ -97,3 +97,5 @@ export default async function ReposPage({ params }: { params: Promise<{ account:
     </div>
   );
 }
+
+export const instant = false;

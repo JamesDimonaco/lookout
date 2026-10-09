@@ -125,3 +125,5 @@ export default async function OverviewPage({ params }: { params: Promise<{ accou
     </div>
   );
 }
+
+export const instant = false;
