@@ -1,10 +1,11 @@
 import { App } from "octokit";
-import { env } from "@/env";
 
-const app = new App({
-  appId: env.GITHUB_APP_ID,
-  privateKey: env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
-});
+// Reads process.env directly (not src/env.ts) so scripts/scan.ts can run outside Next.
+const appId = process.env.GITHUB_APP_ID;
+const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
+if (!appId || !privateKey) throw new Error("GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY must be set");
+
+const app = new App({ appId, privateKey: privateKey.replace(/\\n/g, "\n") });
 
 export function installationOctokit(installationId: number) {
   return app.getInstallationOctokit(installationId);
