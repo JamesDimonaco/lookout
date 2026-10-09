@@ -24,6 +24,14 @@ const ENV_JS = /\benv\.([A-Za-z_][A-Za-z0-9_]*)/g;
 const ENV_PY = /os\.(?:environ\[|environ\.get\(|getenv\()\s*["']([A-Za-z_][A-Za-z0-9_]*)["']/g;
 const CONFIG = /\bmodel["']?\s*[:=]\s*["'`]([^"'`\s]+)["'`]/gi;
 
+// ORMs and auth libraries also say model: "user"; only keep values that read as a model name.
+const MODEL_SHORTHAND = /^(?:opus|sonnet|haiku|fable|mythos)(?:$|[-_])/i;
+const MODEL_HINT = /\d|\/|gpt|claude|gemini|llama|mistral|deepseek|whisper|eleven|embedding/i;
+
+function looksLikeModelName(value: string): boolean {
+  return MODEL_SHORTHAND.test(value) || MODEL_HINT.test(value);
+}
+
 function literals(text: string): string[] {
   return Array.from(text.matchAll(LITERAL), (m) => m[0].replace(/[-.]+$/, ""));
 }
@@ -56,7 +64,7 @@ export function findModelRefs(line: string): FoundRef[] {
   }
 
   for (const m of line.matchAll(CONFIG)) {
-    if (literals(m[1]).length === 0) add({ raw: m[1], modelId: null, kind: "config" });
+    if (literals(m[1]).length === 0 && looksLikeModelName(m[1])) add({ raw: m[1], modelId: null, kind: "config" });
   }
 
   return Array.from(found.values());

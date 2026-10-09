@@ -86,3 +86,16 @@ describe("o-series models need a suffix or quotes", () => {
     expect(findModelRefs("use o4-mini here").map((r) => r.modelId)).toEqual(["o4-mini"]);
   });
 });
+
+describe("config values that are not model names", () => {
+  it("ignores ORM and auth table names", () => {
+    expect(findModelRefs('model: "user"')).toEqual([]);
+    expect(findModelRefs('{ model: "session", fields: [] }')).toEqual([]);
+  });
+  it("keeps shorthand and versioned names", () => {
+    expect(findModelRefs('"model": "opus"')).toEqual([{ raw: "opus", modelId: null, kind: "config" }]);
+    expect(findModelRefs('model: "eleven_multilingual_v2"')).toEqual([
+      { raw: "eleven_multilingual_v2", modelId: null, kind: "config" },
+    ]);
+  });
+});
