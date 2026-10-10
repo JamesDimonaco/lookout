@@ -42,4 +42,3 @@ next-env.d.ts
 .env
 .claude/
 .neon
-skills-lock.json
