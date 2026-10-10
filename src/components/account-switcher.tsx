@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 
-type Account = { login: string; type: "User" | "Organization"; avatarUrl: string | null };
+export type Account = { login: string; type: "User" | "Organization"; avatarUrl: string | null };
 
 export function AccountSwitcher({ current, accounts }: { current: Account; accounts: Account[] }) {
   const { setOpenMobile } = useSidebar();

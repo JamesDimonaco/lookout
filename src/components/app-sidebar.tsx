@@ -2,8 +2,8 @@
 
 import { Cpu, FolderGit2, GitPullRequest, LogOut, Radar, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { AccountSwitcher } from "@/components/account-switcher";
+import { usePathname } from "next/navigation";
+import { type Account, AccountSwitcher } from "@/components/account-switcher";
 import { type LastSweep, OpsClock } from "@/components/ops-clock";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -25,9 +25,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Wordmark } from "@/components/wordmark";
-import { authClient } from "@/lib/auth-client";
-
-type Account = { login: string; type: "User" | "Organization"; avatarUrl: string | null };
+import { useSignOut } from "@/components/sign-out-button";
 
 const SECTIONS = [
   { path: "", label: "Overview", icon: Radar, colour: "text-section-overview" },
@@ -105,7 +103,7 @@ export function AppSidebar({
 }
 
 function UserMenu({ user }: { user: { login: string; image: string | null | undefined } }) {
-  const router = useRouter();
+  const signOut = useSignOut();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" tooltip={user.login} />}>
@@ -116,9 +114,7 @@ function UserMenu({ user }: { user: { login: string; image: string | null | unde
         <span className="truncate">{user.login}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="min-w-48">
-        <DropdownMenuItem
-          onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => router.push("/sign-in") } })}
-        >
+        <DropdownMenuItem onClick={signOut}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SIDEBAR_COOKIE_NAME, SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Wordmark } from "@/components/wordmark";
 import { db } from "@/db";
 import { syncRuns } from "@/db/schema";
@@ -27,7 +27,7 @@ export default async function AccountLayout({
       .limit(1),
   ]);
   return (
-    <SidebarProvider defaultOpen={cookieStore.get("sidebar_state")?.value !== "false"}>
+    <SidebarProvider defaultOpen={cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== "false"}>
       <AppSidebar
         current={{ login: account.login, type: account.type, avatarUrl: account.avatarUrl }}
         accounts={accounts}
@@ -48,7 +48,7 @@ export default async function AccountLayout({
 // Formatted on the server in UTC, so the server and client render the same string.
 function formatSweep(d: Date) {
   const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
 }
 
 export const instant = false;
