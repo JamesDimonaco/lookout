@@ -1,11 +1,16 @@
 import "server-only";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { env } from "@/env";
 import { auth } from "./auth";
 
-export const getSession = cache(async () => auth.api.getSession({ headers: await headers() }));
+// Without this, Cache Components prerenders the page and aborts any fetch made during it.
+export const getSession = cache(async () => {
+  await connection();
+  return auth.api.getSession({ headers: await headers() });
+});
 
 export async function requireSession() {
   const session = await getSession();
