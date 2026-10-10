@@ -4,6 +4,7 @@ import { Cpu, FolderGit2, GitPullRequest, LogOut, Radar, Settings } from "lucide
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AccountSwitcher } from "@/components/account-switcher";
+import { type LastSweep, OpsClock } from "@/components/ops-clock";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -40,10 +41,12 @@ export function AppSidebar({
   current,
   accounts,
   user,
+  sweep,
 }: {
   current: Account;
   accounts: Account[];
   user: { login: string; image: string | null | undefined };
+  sweep: LastSweep;
 }) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
@@ -88,6 +91,9 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <OpsClock sweep={sweep} settingsHref={`${base}/settings`} />
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <UserMenu user={user} />
           </SidebarMenuItem>
