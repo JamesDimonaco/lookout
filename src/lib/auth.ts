@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { env } from "@/env";
@@ -21,6 +21,13 @@ export const auth = betterAuth({
       clientSecret: env.GITHUB_CLIENT_SECRET,
       mapProfileToUser: (profile) => ({ githubLogin: profile.login }),
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/update-user" && ctx.body && "githubLogin" in ctx.body) {
+        throw new APIError("BAD_REQUEST", { message: "githubLogin comes from GitHub and cannot be edited." });
+      }
+    }),
   },
   databaseHooks: {
     user: {
