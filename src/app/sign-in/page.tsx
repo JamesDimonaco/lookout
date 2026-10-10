@@ -1,4 +1,6 @@
+import { Radar } from "@/components/radar";
 import { SignOutButton } from "@/components/sign-out-button";
+import { Wordmark } from "@/components/wordmark";
 import { SignInButton } from "./sign-in-button";
 
 export default async function SignInPage({
@@ -8,9 +10,12 @@ export default async function SignInPage({
 }) {
   const { reauth, denied, error } = await searchParams;
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="space-y-4 text-center">
-        <h1 className="text-2xl font-semibold">lookout</h1>
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
+        <Radar className="w-full max-w-64" />
+        <h1 className="text-4xl">
+          <Wordmark />
+        </h1>
         {denied ? (
           <>
             <p className="text-muted-foreground">This GitHub account is not on the allowlist.</p>
