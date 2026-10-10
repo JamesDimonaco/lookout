@@ -16,12 +16,8 @@ Stack: Next.js 16, TypeScript, Tailwind 4, shadcn, Drizzle on Neon Postgres, Bet
 ## One-off setup
 
 1. **Database.** Create a Neon project, then `neon link --project-id <id> --branch production` in the repo. It writes `DATABASE_URL` (pooled) into `.env`.
-2. **GitHub App.** Deploy once with placeholder `GITHUB_*` values, open `/setup/github-app` on the deployed site and click through. GitHub redirects back with a one-time `code`. Exchange it within an hour:
-   ```sh
-   gh api -X POST /app-manifests/<code>/conversions
-   ```
-   The response has `id`, `slug`, `pem`, `client_id` and `client_secret`.
-   In the App's settings under Optional features, turn off **Expire user authorization tokens**. (If left on, you'll be asked to sign in again every 8 hours.)
+2. **GitHub App.** Create one at github.com/settings/apps/new with: callback URL `https://<your-domain>/api/auth/callback/github`, **Request user authorization (OAuth) during installation** on, webhook off, repository permissions Contents, Pull requests, Checks and Commit statuses (read), account permission Email addresses (read), installable on any account. Generate a private key.
+   Under Optional features, turn off **Expire user authorization tokens**. (If left on, you'll be asked to sign in again every 8 hours.)
 3. **Environment.** Set these on Vercel (all environments):
    | Name | Value |
    |---|---|
