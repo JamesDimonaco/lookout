@@ -15,7 +15,7 @@ Stack: Next.js 16, TypeScript, Tailwind 4, shadcn, Drizzle on Neon Postgres, Bet
 
 ## One-off setup
 
-1. **Database.** Create a Neon project. Copy the pooled connection string as `DATABASE_URL`.
+1. **Database.** Create a Neon project, then `neon link --project-id <id> --branch production` in the repo. It writes `DATABASE_URL` (pooled) into `.env`.
 2. **GitHub App.** Open `scripts/create-github-app.html` in a browser and click through. GitHub redirects to this repo's page with `?code=…`. Exchange it within an hour:
    ```sh
    gh api -X POST /app-manifests/<code>/conversions
@@ -45,7 +45,7 @@ Deploys run `drizzle-kit migrate` before `next build`, so the schema is applied 
 
 ```sh
 pnpm install
-cp .env.example .env   # fill it in
+cp .env.example .env   # fill it in; neon link fills DATABASE_URL
 pnpm db:migrate
 pnpm dev
 pnpm test
