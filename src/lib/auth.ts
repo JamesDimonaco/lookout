@@ -11,7 +11,8 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
   user: {
     additionalFields: {
-      githubLogin: { type: "string", required: true, input: false },
+      // input: false would make Better Auth drop the value mapProfileToUser provides.
+      githubLogin: { type: "string", required: true },
     },
   },
   socialProviders: {
