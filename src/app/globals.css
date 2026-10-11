@@ -1,26 +1,124 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark only: <html> always carries .dark, so the components' dark: variants always apply. */
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --radius: 0.375rem;
+
+  --background: #000000;
+  --foreground: #f5f5f4;
+  --card: #0f0f0f;
+  --card-foreground: #f5f5f4;
+  --popover: #141414;
+  --popover-foreground: #f5f5f4;
+  --primary: #ffd400;
+  --primary-foreground: #000000;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f4;
+  --muted: #1a1a1a;
+  --muted-foreground: #a3a3a3;
+  --accent: #222222;
+  --accent-foreground: #f5f5f4;
+  --destructive: #ff5a5f;
+  --border: #2a2a2a;
+  --input: #333333;
+  --ring: #ffd400;
+
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #f5f5f4;
+  --sidebar-primary: #ffd400;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1c1c1c;
+  --sidebar-accent-foreground: #f5f5f4;
+  --sidebar-border: #222222;
+  --sidebar-ring: #ffd400;
+
+  /* Filled status colours take black text; "none" is a grey fill with light text. */
+  --status-fail: #ff5a5f;
+  --status-warn: #ff9f1c;
+  --status-ok: #3ddc84;
+  --status-pending: #4da6ff;
+  --status-none: #3a3a3a;
+  --status-none-foreground: #e5e5e5;
+
+  --section-overview: #ffd400;
+  --section-prs: #ff6fb5;
+  --section-models: #b794ff;
+  --section-repos: #2dd4bf;
+  --section-settings: #a3a3a3;
+
+  /* Outlined chips only, never fills. */
+  --provider-anthropic: #d97757;
+  --provider-openai: #f5f5f4;
+  --provider-google: #5b9cff;
+  --provider-other: #8f8f8f;
 }
 
 @theme inline {
+  --font-sans: var(--font-atkinson);
+  --font-display: var(--font-chakra);
+  --font-mono: var(--font-jetbrains);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand: var(--primary);
+  --color-status-fail: var(--status-fail);
+  --color-status-warn: var(--status-warn);
+  --color-status-ok: var(--status-ok);
+  --color-status-pending: var(--status-pending);
+  --color-status-none: var(--status-none);
+  --color-status-none-foreground: var(--status-none-foreground);
+  --color-section-overview: var(--section-overview);
+  --color-section-prs: var(--section-prs);
+  --color-section-models: var(--section-models);
+  --color-section-repos: var(--section-repos);
+  --color-section-settings: var(--section-settings);
+  --color-provider-anthropic: var(--provider-anthropic);
+  --color-provider-openai: var(--provider-openai);
+  --color-provider-google: var(--provider-google);
+  --color-provider-other: var(--provider-other);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background font-sans leading-relaxed text-foreground;
+  }
 }
